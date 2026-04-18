@@ -1,4 +1,5 @@
 ﻿using GraphQLPlayground.API.Data;
+using GraphQLPlayground.API.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GraphQLPlayground.API.Tests;
@@ -21,6 +22,19 @@ internal sealed class TestDbContextFactory(DbContextOptions<AppDbContext> option
 
         await using var context = await factory.CreateDbContextAsync();
         await context.Database.EnsureCreatedAsync();
+
+        var electronics = new Category { Id = 1, Name = "Electronics" };
+        var gaming = new Category { Id = 2, Name = "Gaming" };
+
+        context.Categories.AddRange(electronics, gaming);
+
+        context.Products.AddRange(
+            new Product { Id = 1, Name = "Smartphone", Price = 1000m, CategoryId = electronics.Id },
+            new Product { Id = 2, Name = "Notebook", Price = 2000m, CategoryId = electronics.Id },
+            new Product { Id = 3, Name = "Mouse", Price = 100m, CategoryId = electronics.Id }
+        );
+
+        await context.SaveChangesAsync();
 
         return factory;
     }
