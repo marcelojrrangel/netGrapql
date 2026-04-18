@@ -1,0 +1,107 @@
+﻿### GraphQL HTTP Client (Rider)
+### Uso rapido: clique no botao "Run" acima de cada request.
+### Porta padrao encontrada em `Properties/launchSettings.json`: 5200
+
+@baseUrl = http://localhost:5200
+@graphqlUrl = {{baseUrl}}/graphql
+@newCategoryName = Gaming
+@newProductName = Mouse Gamer Pro
+
+### 0) Smoke test simples
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "query { __typename }"
+}
+
+### 1) Listar produtos (equivalente a GET /products no REST)
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "query { products { id name price category { id name } } }"
+}
+
+### 2) Criar categoria (addCategory)
+### Salva o ID retornado em variavel global: createdCategoryId
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation { addCategory(name: \"Gaming\") { id name } }",
+  "variables": {
+    "name": "{{newCategoryName}}"
+  }
+}
+
+> {%
+  client.global.set("createdCategoryId", response.body.data.addCategory.id);
+%}
+
+### 3) Criar produto na categoria criada acima
+### Se preferir, troque categoryId para 1 (Electronics)
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation($name: String!, $price: Decimal!, $categoryId: Int!) { addProduct(name: $name, price: $price, categoryId: $categoryId) { id name price category { id name } } }",
+  "variables": {
+    "name": "{{newProductName}}",
+    "price": 199.90,
+    "categoryId": {{createdCategoryId}}
+  }
+}
+
+> {%
+  client.global.set("createdProductId", response.body.data.addProduct.id);
+%}
+
+### 4) Atualizar produto
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation($id: Int!, $name: String, $price: Decimal) { updateProduct(id: $id, name: $name, price: $price) { id name price } }",
+  "variables": {
+    "id": {{createdProductId}},
+    "name": "Mouse Gamer Pro X",
+    "price": 229.90
+  }
+}
+
+### 5) Aplicar desconto em lote
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation($ids: [Int!]!, $discount: Decimal!) { applyDiscount(productIds: $ids, discountPercentage: $discount) { id name price } }",
+  "variables": {
+    "ids": [{{createdProductId}}],
+    "discount": 10
+  }
+}
+
+### 6) Excluir produto criado
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation($id: Int!) { deleteProduct(id: $id) }",
+  "variables": {
+    "id": {{createdProductId}}
+  }
+}
+
+### 7) (Opcional) Excluir categoria criada
+### Vai falhar se ainda houver produto vinculado nela.
+POST {{graphqlUrl}}
+Content-Type: application/json
+
+{
+  "query": "mutation($id: Int!) { deleteCategory(id: $id) }",
+  "variables": {
+    "id": {{createdCategoryId}}
+  }
+}
+

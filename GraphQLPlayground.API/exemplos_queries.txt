@@ -1,0 +1,80 @@
+# Exemplos de Queries e Mutations para testar no Banana Cake Pop
+
+## 1. Listar produtos com filtros e ordenacao
+query {
+  products(
+    where: { price: { gt: 100 } }
+    order: { price: DESC }
+  ) {
+    id
+    name
+    price
+    category {
+      id
+      name
+    }
+  }
+}
+
+## 2. Buscar categoria por ID
+query {
+  categoryById(id: 1) {
+    id
+    name
+    products {
+      id
+      name
+      price
+    }
+  }
+}
+
+## 3. Criar categoria
+mutation {
+  addCategory(name: "Gaming") {
+    id
+    name
+  }
+}
+
+## 4. Criar produto
+mutation {
+  addProduct(name: "PS5", price: 499.99, categoryId: 1) {
+    id
+    name
+    price
+    category {
+      name
+    }
+  }
+}
+
+## 5. Atualizar produto (nome e preco)
+mutation {
+  updateProduct(id: 1, name: "Smartphone Pro", price: 1199.90) {
+    id
+    name
+    price
+  }
+}
+
+## 6. Trocar categoria de um produto
+mutation {
+  updateProductCategory(productId: 1, newCategoryId: 2) {
+    id
+    name
+    category {
+      id
+      name
+    }
+  }
+}
+
+## 7. Aplicar desconto em lote
+mutation {
+  applyDiscount(productIds: [1, 2, 3], discountPercentage: 10) {
+    id
+    name
+    price
+  }
+}
